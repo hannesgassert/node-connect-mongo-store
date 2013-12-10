@@ -68,11 +68,19 @@ module.exports = function(connect) {
      * @api public
      */
     MongoStore.prototype.set = function(id, sess, callback) {
+        var expires
+
+        if (sess && sess.cookie && sess.cookie.expires) {
+            expires = Date.parse(sess.cookie.expires)
+        } else {
+            expires = Date.now() + this.options.ttl
+        }
+
         this.collection.update(
             {_id: id},
             {$set: {
                 sess: sess,
-                expires: Date.now() + this.options.ttl
+                expires: expires
             }},
             {upsert: true},
             callback || this._error
